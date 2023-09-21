@@ -19,3 +19,8 @@
 
 # Go workspace file
 go.work
+
+.vs/
+x64/
+*.o
+

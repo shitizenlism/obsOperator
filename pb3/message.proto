@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "./;pb";
+
+//设备心跳消息(ping-pong)。由设备发ping包，服务器回复pong包。10s一次。
+message Ping{
+	//时间戳单位：ms。下面皆同。timestamp是为了测试两者通信链路时延。
+  	uint32 timeStamp = 1;
+  	string hello = 2;
+}
+
+//设备登录消息(indication-reply)。设备在登录消息中上报devId和streamId，服务器保存相应的TcpConnId与streamId对应关系表并回复确认。
+//如果未收到服务器回复，间隔5s重复发送。
+message LoginIndication{
+  	uint32 timeStamp = 1;
+  
+  	//设备的ID，全局唯一。推流软件:"encoder"，荷官端软件:"dealer"。
+  	string devId = 2;
+  	
+  	//流ID，全局唯一。streamId=${app}-${stream}。webrtc(wrs)推流的${channelName} = rtmp推流的`${app}-${stream}`
+    //此方案需要的${app},${stream}。推流软件和荷官端软件都可以获得而不需要修改配置文件。
+    //荷官端软件配置文件中，flv=rtmp://livevideo.tzcctv.web/tz04/8-41，其中tz04就是app，8-41就是stream。软件解析一下即可。
+  	string streamId = 3;
+}
+message LoginReply{
+  	 uint32 timeStamp = 1;
+
+	   string result = 2;	//成功或失败原因
+}
+
+//obs切换场景消息(command-response)。服务器/荷官端均可要求obs切换到指定场景(sceneName)和输入源，obs回复切换结果以及当前正在使用的场景/输入源。
+//如果未收到响应，服务器间隔5s重复发送。
+//场景切换的发起者和接收者约定。场景名称：scene01~scene09 输入源名称：input01~input09
+message SceneCommand{
+    uint32 timeStamp = 1;
+    string streamId  = 2; //目标streamerId
+    string sceneName = 3; //目标场景名称。
+    string inputName = 4; //目标场景使用的输入源名称。
+}
+message SceneResponse{
+    uint32 timeStamp = 1;
+    string result = 2;  //成功或失败原因
+    string streamId  = 3;   //当前streamerId
+    string sceneName = 4;   //当前streamerId正在使用的场景名称。
+}
+
+//游戏按局录像(cmd-rep)
+message GameRecordCommand{
+    uint32 timeStamp = 1;
+    string tableId  = 2; //目标桌台ID。一个桌台有多个不同视角的摄像头，多个视频流。
+    string gameCode = 3; //游戏局号。录像文件名=${gameCode}.mp4
+    string recordAction = 4; //开始/停止录像
+}
+message GameRecordResponse{
+    uint32 timeStamp = 1;
+    string result = 2;  //成功或失败原因
+}
+
+//一般视频录像(cmd-rep)
+message RecordCommand{
+    uint32 timeStamp = 1;
+    string streamId  = 2; //用哪个流录像
+    string saveName = 3; //录像文件名称，不含扩展名。扩展名固定为.mp4
+    string recordAction = 4; //开始/停止录像
+}
+message RecordResponse{
+    uint32 timeStamp = 1;
+    string result = 2;  //成功或失败原因
+}

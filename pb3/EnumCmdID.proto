@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "./;pb";
+
+enum MessageID {
+
+  UNKNOWN = 0;
+  //设备心跳消息(ping-pong)。
+  PING 	= 1000;
+  //obs切换场景消息(command-response)。
+  SCENE = 1001;
+  //设备登录消息ID
+  LOGIN = 1002;
+  //一般视频录像(cmd-rep)
+  RECORD = 1003;
+  //游戏按局录像(cmd-rep)
+  GAME_RECORD = 1004;
+}
+
